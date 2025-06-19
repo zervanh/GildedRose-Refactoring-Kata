@@ -160,4 +160,31 @@ class GildedRoseTest extends TestCase
             $this->assertEquals($expectedResult, $item->quality);
         }
     }
+
+    public function conjuredItemsProvider(): array
+    {
+        return [
+            'quality decreases double the rate for conjured item' => [
+                'items' => [
+                    new Item('Conjured Mana Cake', 2, 10),
+                    new Item('Conjured Carrot', 5, 6),
+                ],
+                'expectedResults' => [8, 4],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider conjuredItemsProvider
+     */
+    public function testConjuredItemsDecreaseDoubleTheRateOfNormalItems(array $items, array $expectedResults): void
+    {
+        $gildedRose = new GildedRose($items);
+        $gildedRose->updateQuality();
+
+        foreach ($expectedResults as $expectedResult) {
+            $item = array_shift($items);
+            $this->assertEquals($expectedResult, $item->quality);
+        }
+    }
 }

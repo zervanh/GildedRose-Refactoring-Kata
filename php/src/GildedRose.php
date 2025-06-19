@@ -25,6 +25,7 @@ final class GildedRose
 
             $isBackstagePass = $this->assertIsBackstagePass($item);
             $isAgedBrie = $this->assertIsAgedBrie($item);
+            $isConjured = $this->assertItemConjured($item);
 
             if (($isBackstagePass === true || $isAgedBrie === true) && $item->quality < self::MAX_QUALITY) {
                 ++$item->quality;
@@ -41,6 +42,10 @@ final class GildedRose
 
             if ($isBackstagePass === false && $isAgedBrie === false && $item->quality > 0) {
                 --$item->quality;
+
+                if ($isConjured === true) {
+                    --$item->quality;
+                }
             }
 
             --$item->sellIn;
@@ -71,5 +76,10 @@ final class GildedRose
     private function assertIsAgedBrie(Item $item): bool
     {
         return $item->name === 'Aged Brie';
+    }
+
+    private function assertItemConjured(Item $item): bool
+    {
+        return preg_match('/\bconjured\b/i', $item->name) === 1;
     }
 }
