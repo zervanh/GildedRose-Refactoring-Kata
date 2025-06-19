@@ -6,6 +6,8 @@ namespace GildedRose;
 
 final class GildedRose
 {
+    private const MAX_QUALITY = 50;
+
     /**
      * @param Item[] $items
      */
@@ -17,51 +19,57 @@ final class GildedRose
     public function updateQuality(): void
     {
         foreach ($this->items as $item) {
-            if ($item->name != 'Aged Brie' and $item->name != 'Backstage passes to a TAFKAL80ETC concert') {
-                if ($item->quality > 0) {
-                    if ($item->name != 'Sulfuras, Hand of Ragnaros') {
-                        $item->quality = $item->quality - 1;
+            if ($item->name === 'Sulfuras, Hand of Ragnaros') {
+                continue;
+            }
+
+            $isBackstagePass = $this->assertIsBackstagePass($item);
+            $isAgedBrie = $this->assertIsAgedBrie($item);
+
+            if (($isBackstagePass === true || $isAgedBrie === true) && $item->quality < self::MAX_QUALITY) {
+                ++$item->quality;
+
+                if ($isBackstagePass === true && $item->quality < self::MAX_QUALITY) {
+                    if ($item->sellIn < 11) {
+                        ++$item->quality;
                     }
-                }
-            } else {
-                if ($item->quality < 50) {
-                    $item->quality = $item->quality + 1;
-                    if ($item->name == 'Backstage passes to a TAFKAL80ETC concert') {
-                        if ($item->sellIn < 11) {
-                            if ($item->quality < 50) {
-                                $item->quality = $item->quality + 1;
-                            }
-                        }
-                        if ($item->sellIn < 6) {
-                            if ($item->quality < 50) {
-                                $item->quality = $item->quality + 1;
-                            }
-                        }
+                    if ($item->sellIn < 6) {
+                        ++$item->quality;
                     }
                 }
             }
 
-            if ($item->name != 'Sulfuras, Hand of Ragnaros') {
-                $item->sellIn = $item->sellIn - 1;
+            if ($isBackstagePass === false && $isAgedBrie === false && $item->quality > 0) {
+                --$item->quality;
             }
 
-            if ($item->sellIn < 0) {
-                if ($item->name != 'Aged Brie') {
-                    if ($item->name != 'Backstage passes to a TAFKAL80ETC concert') {
-                        if ($item->quality > 0) {
-                            if ($item->name != 'Sulfuras, Hand of Ragnaros') {
-                                $item->quality = $item->quality - 1;
-                            }
-                        }
-                    } else {
-                        $item->quality = $item->quality - $item->quality;
-                    }
-                } else {
-                    if ($item->quality < 50) {
-                        $item->quality = $item->quality + 1;
-                    }
+            --$item->sellIn;
+
+            if ($item->sellIn < 0 && $item->quality !== 0) {
+                if ($isBackstagePass === true) {
+                    $item->quality -= $item->quality;
+                    continue;
+                }
+
+                if ($isAgedBrie === true && $item->quality < self::MAX_QUALITY) {
+                    ++$item->quality;
+                    continue;
+                }
+
+                if ($isAgedBrie === false && $isBackstagePass === false && $item->quality > 0) {
+                    --$item->quality;
                 }
             }
         }
+    }
+
+    private function assertIsBackstagePass(Item $item): bool
+    {
+        return $item->name === 'Backstage passes to a TAFKAL80ETC concert';
+    }
+
+    private function assertIsAgedBrie(Item $item): bool
+    {
+        return $item->name === 'Aged Brie';
     }
 }
